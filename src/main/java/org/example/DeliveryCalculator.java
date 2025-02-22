@@ -1,19 +1,28 @@
 package org.example;
 
+import java.util.Objects;
+
 public class DeliveryCalculator {
-    private double totalDeliveryCost;
-    private double destinationDistance;
-    private CargoDimension cargoDimension;
-    private boolean isFragile;
-    private DeliveryServiceLoad deliveryServiceLoad;
     public static final double MINIMAL_DELIVERY_COST = 400.0;
+    private final double destinationDistance;
+    private final CargoDimension cargoDimension;
+    private final boolean isFragile;
+    private final DeliveryServiceLoad deliveryServiceLoad;
+    private double totalDeliveryCost;
 
     public DeliveryCalculator(double destinationDistance, CargoDimension cargoDimension,
                               boolean isFragile, DeliveryServiceLoad deliveryServiceLoad) {
+        if (destinationDistance <= 0 || destinationDistance > 20038) {
+            throw new IllegalArgumentException("Incorrect destination distance");
+        }
+        if (isFragile && destinationDistance > 30) {
+            throw new IllegalArgumentException("Fragile goods cannot be delivered over a distance of more than 30 km.");
+        }
         this.destinationDistance = destinationDistance;
-        this.cargoDimension = cargoDimension;
+        this.cargoDimension = Objects.requireNonNull(cargoDimension);
         this.isFragile = isFragile;
-        this.deliveryServiceLoad = deliveryServiceLoad;
+        this.deliveryServiceLoad = Objects.requireNonNull(deliveryServiceLoad);
+        calculateTotalDeliveryCost();
     }
 
     public double getTotalDeliveryCost() {
@@ -24,67 +33,42 @@ public class DeliveryCalculator {
         return destinationDistance;
     }
 
-    public void setDestinationDistance(double destinationDistance) {
-        this.destinationDistance = destinationDistance;
-    }
-
     public CargoDimension getCargoDimension() {
         return cargoDimension;
-    }
-
-    public void setCargoDimension(CargoDimension cargoDimension) {
-        this.cargoDimension = cargoDimension;
     }
 
     public boolean isFragile() {
         return isFragile;
     }
 
-    public void setFragile(boolean fragile) {
-        isFragile = fragile;
-    }
-
     public DeliveryServiceLoad getDeliveryServiceLoad() {
         return deliveryServiceLoad;
     }
 
-    public void setDeliveryServiceLoad(DeliveryServiceLoad deliveryServiceLoad) {
-        this.deliveryServiceLoad = deliveryServiceLoad;
-    }
-
-    public void calculateTotalDeliveryCost() {
-        if (destinationDistance <= 2) {
-            totalDeliveryCost += 50.0;
-        } else if (destinationDistance <= 10) {
-            totalDeliveryCost += 100.0;
-        } else if (destinationDistance <= 30) {
-            totalDeliveryCost += 200.0;
-        } else {
-            totalDeliveryCost += 300.0;
-        }
-
-        switch (cargoDimension) {
-            case LARGE -> totalDeliveryCost += 200.0;
-            case SMALL -> totalDeliveryCost += 100.0;
-        }
-
+    private void calculateTotalDeliveryCost() {
+        totalDeliveryCost = calculateDestinationDistanceCost();
+        totalDeliveryCost += (cargoDimension == CargoDimension.LARGE) ? 200.0 : 100.0;
         if (isFragile) {
-            if (destinationDistance > 30) {
-                throw new IllegalArgumentException("Fragile goods cannot be delivered over a distance of more than 30 km.");
-            }
             totalDeliveryCost += 300.0;
         }
-
-        switch (deliveryServiceLoad) {
-            case VERY_HIGH -> totalDeliveryCost *= 1.6;
-            case HIGH -> totalDeliveryCost *= 1.4;
-            case INCREASED -> totalDeliveryCost *= 1.2;
-            default -> totalDeliveryCost *= 1;
-        }
-
+        totalDeliveryCost *= deliveryServiceLoad.getDeliveryCoefficient();
         if (totalDeliveryCost < MINIMAL_DELIVERY_COST) {
             totalDeliveryCost = MINIMAL_DELIVERY_COST;
         }
+    }
+
+    private double calculateDestinationDistanceCost() {
+        double destinationDistanceCost = 0;
+        if (destinationDistance <= 2) {
+            destinationDistanceCost += 50.0;
+        } else if (destinationDistance <= 10) {
+            destinationDistanceCost += 100.0;
+        } else if (destinationDistance <= 30) {
+            destinationDistanceCost += 200.0;
+        } else {
+            destinationDistanceCost += 300.0;
+        }
+        return destinationDistanceCost;
     }
 
     @Override
@@ -94,7 +78,6 @@ public class DeliveryCalculator {
 
         DeliveryCalculator that = (DeliveryCalculator) o;
 
-        if (Double.compare(that.totalDeliveryCost, totalDeliveryCost) != 0) return false;
         if (Double.compare(that.destinationDistance, destinationDistance) != 0) return false;
         if (isFragile != that.isFragile) return false;
         if (cargoDimension != that.cargoDimension) return false;
@@ -105,10 +88,8 @@ public class DeliveryCalculator {
     public int hashCode() {
         int result;
         long temp;
-        temp = Double.doubleToLongBits(totalDeliveryCost);
-        result = (int) (temp ^ (temp >>> 32));
         temp = Double.doubleToLongBits(destinationDistance);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = (int) (temp ^ (temp >>> 32));
         result = 31 * result + cargoDimension.hashCode();
         result = 31 * result + (isFragile ? 1 : 0);
         result = 31 * result + deliveryServiceLoad.hashCode();
@@ -121,6 +102,6 @@ public class DeliveryCalculator {
                 ",\ncargo dimension = " + cargoDimension +
                 ",\nis fragile = " + isFragile +
                 ",\ndelivery service load = " + deliveryServiceLoad +
-                "\nThe total delivery cost is: " + totalDeliveryCost + " rubles." ;
+                "\nThe total delivery cost is: " + totalDeliveryCost + " rubles.";
     }
 }
