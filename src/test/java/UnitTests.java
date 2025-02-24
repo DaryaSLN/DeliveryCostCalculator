@@ -78,15 +78,23 @@ public class UnitTests {
     @Tag("negative")
     @DisplayName("Null cargo dimension value test")
     public void nullCargoDimensionValueTest() {
-        assertThrows(NullPointerException.class, () -> new DeliveryCalculator(5, null,
+        final String expectedErrorMessage = "Cargo dimension cannot be null";
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> new DeliveryCalculator(5, null,
                 true, DeliveryServiceLoad.LOW));
+
+        assertEquals(expectedErrorMessage, exception.getMessage());
     }
 
     @Test
     @Tag("negative")
     @DisplayName("Null delivery service load value test")
     public void nullDeliveryServiceLoadValueTest() {
-        assertThrows(NullPointerException.class, () -> new DeliveryCalculator(5, CargoDimension.SMALL,
+        final String expectedErrorMessage = "Delivery service load cannot be null";
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> new DeliveryCalculator(5, CargoDimension.SMALL,
                 true, null));
+
+        assertEquals(expectedErrorMessage, exception.getMessage());
     }
 }

@@ -19,9 +19,9 @@ public class DeliveryCalculator {
             throw new IllegalArgumentException("Fragile goods cannot be delivered over a distance of more than 30 km.");
         }
         this.destinationDistance = destinationDistance;
-        this.cargoDimension = Objects.requireNonNull(cargoDimension);
+        this.cargoDimension = Objects.requireNonNull(cargoDimension, "Cargo dimension cannot be null");
         this.isFragile = isFragile;
-        this.deliveryServiceLoad = Objects.requireNonNull(deliveryServiceLoad);
+        this.deliveryServiceLoad = Objects.requireNonNull(deliveryServiceLoad, "Delivery service load cannot be null");
         calculateTotalDeliveryCost();
     }
 
